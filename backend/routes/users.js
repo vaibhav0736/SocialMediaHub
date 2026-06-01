@@ -109,6 +109,14 @@ router.post('/:id/follow', (req, res) => {
             [followerId, followingId]
         );
 
+
+        const actor=getOne('SELECT username FROM users WHERE id = ?', [followerId]);
+        
+        run(
+            'INSERT INTO notifications (user_id, actor_id, type, post_id, message) VALUES (?, ?, ?, ?, ?)',
+            [followingId, followerId, 'follow', null, `${actor.username} started following you`]
+        );
+
         res.json({ message: 'Following' });
 
     } catch (error) {

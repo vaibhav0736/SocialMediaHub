@@ -84,7 +84,11 @@ function PostCard({ post, currentUserId, onPostDeleted, onPostEdited }) {
     return (
         <div className="post-card">
             <div className="post-header">
-                <img src={post.avatar_url || 'https://i.pravatar.cc/40'} alt={post.username} className="avatar" />
+                {post.avatar_url ? (
+                    <img src={post.avatar_url} alt={post.username} className="avatar" />
+                ) : (
+                    <div className="avatar avatar-placeholder">{post.username[0].toUpperCase()}</div>
+                )}
                 <Link to={`/users/${post.user_id}`} className="username-link">
                     <strong>{post.username}</strong>
                 </Link>
@@ -111,7 +115,15 @@ function PostCard({ post, currentUserId, onPostDeleted, onPostEdited }) {
             ) : (
                 <>
                     <p className="post-content">{post.content}</p>
-                    {post.image_url && <img src={post.image_url} alt="Post" className="post-image" />}
+                    {post.image_url && (
+                        <img
+                            src={post.image_url.startsWith('/uploads/')
+                                ? `http://localhost:3000${post.image_url}`
+                                : post.image_url}
+                            alt="Post"
+                            className="post-image"
+                        />
+                    )}
                 </>
             )}
 

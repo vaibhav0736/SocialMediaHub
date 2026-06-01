@@ -1,7 +1,33 @@
 const express = require('express');
 const { getOne, getAll, run } = require('../database/db');
-
 const router = express.Router();
+const multer=require('multer');
+const path=require('path');
+
+// Where to save files + how to name them
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/');   // save in backend/uploads/
+    },
+    filename: (req, file, cb) => {
+        // Give each file a unique name: timestamp-random.ext
+        const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(file.originalname);  // e.g. ".png"
+        cb(null, uniqueName + ext);
+    }
+});
+
+// Only allow image files (reject PDFs, videos, etc.)
+const upload = multer({
+    storage,
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only images are allowed'));
+        }
+    }
+});
 
 // GET all posts (Feed)
 router.get('/', (req, res) => {
@@ -34,8 +60,6 @@ router.get('/', (req, res) => {
     }
 });
 
-
-
 // GET posts by a user you follow
 router.get('/following/:userId', (req, res) => {
     try {
@@ -64,7 +88,6 @@ router.get('/following/:userId', (req, res) => {
         res.status(500).json({ error: 'Failed to get posts' });
     }
 });
-
 
 // GET single post with comments
 router.get('/:id', (req, res) => {
@@ -103,18 +126,25 @@ router.get('/:id', (req, res) => {
     }
 });
 
-// CREATE a post
-router.post('/', (req, res) => {
+// CREATE a post (with optional image upload)
+router.post('/', upload.single('image'), (req, res) => {
     try {
-        const { userId, content, imageUrl } = req.body;
+        // req.body has text fields (userId, content)
+        // req.file has the uploaded file (or undefined if no file)
+        const { userId, content } = req.body;
 
-        if (!content && !imageUrl) {
-            return res.status(400).json({ error: 'Post must have content' });
+        if (!content && !req.file) {
+            return res.status(400).json({ error: 'Post must have content or an image' });
         }
+
+        // Build the image URL if a file was uploaded
+        const imageUrl = req.file
+            ? `/uploads/${req.file.filename}`   // relative URL, served by Express
+            : '';
 
         const result = run(
             'INSERT INTO posts (user_id, content, image_url) VALUES (?, ?, ?)',
-            [userId, content || '', imageUrl || '']
+            [parseInt(userId), content || '', imageUrl]
         );
 
         const newPost = getOne(`
@@ -152,7 +182,29 @@ router.post('/:id/like', (req, res) => {
             return res.status(400).json({ error: 'Already liked' });
         }
 
+
+
+
         run('INSERT INTO likes (user_id, post_id) VALUES (?, ?)', [userId, postId]);
+
+          //-Notification
+          //who owns this post ? we need to notfify them,not thr liker
+          const postOwner=getOne('SELECT user_id FROM posts WHERE id=?',[postId])
+
+          //Only notify if liker is not not the post owner(dont notify yourself)
+
+
+          if(postOwner && postOwner.user_id !== userId) {
+            //get the liker username for the message
+
+            const actor=getOne('SELECT username FROM users WHERE ID=?',[userId]);
+
+            run(
+                'INSERT INTO notifications (user_id,actor_id,type,post_id,message) VALUES (?,?,?,?)',
+                [postOwner.user_id, userId, 'like', postId, `${actor.username} liked your post`]
+            );
+        }
+
 
         const count = getOne('SELECT COUNT(*) as count FROM likes WHERE post_id = ?', [postId]);
 
@@ -241,6 +293,17 @@ router.post('/:id/comment', (req, res) => {
             WHERE comments.id = ?
         `, [result.lastInsertRowid]);
 
+
+        const postOwner=getOne('SELECT user_id FROM posts WHERE id=?',[postId]);
+
+        if(postOwner && postOwner.user_id!==userId)
+        {
+            const actor=getOne('SELECT username FROM users WHERE id=?',[userId]);
+            run(
+                'INSERT INTO notifications (user_id,actor_id,type,post_id,message) VALUES (?,?,?,?)',
+                [postOwner.user_id, userId, 'comment', postId, `${actor.username} commented on your post`]
+            );
+        }
         res.status(201).json(newComment);
 
     } catch (error) {
@@ -277,8 +340,6 @@ router.get('/user/:userId', (req, res) => {
     }
 });
 
-
-
 // EDIT a post
 router.put('/:id', (req, res) => {
     try {
@@ -310,6 +371,8 @@ router.put('/:id', (req, res) => {
         res.status(500).json({ error: 'Failed to edit post' });
     }
 });
+
+
 
 
 

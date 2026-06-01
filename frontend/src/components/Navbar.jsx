@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import SearchBar from './SearchBar';
 import { useTheme } from '../context/ThemeContext';
+import NotificationBell from './NotificationBell';
+
 function Navbar() {
     const { user, logout } = useAuth();
     const {theme,toggleTheme}=useTheme();
@@ -10,6 +12,7 @@ function Navbar() {
         <nav className="navbar">
             <h1>Social Hub</h1>
             <SearchBar />
+            <NotificationBell />
             <div className="nav-links">
                 <Link to="/">Feed</Link>
 
@@ -17,7 +20,9 @@ function Navbar() {
                     <>
                         <Link to="/create">New Post</Link>
                         <Link to={`/users/${user.id}`}>{user.username}</Link>
+                          <Link to="/change-password">Change Password</Link>
                         <Link to="/" onClick={logout}>Logout</Link>
+                      
                     </>
                 ) : (
                     <>

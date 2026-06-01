@@ -99,11 +99,11 @@ function Profile() {
     return (
         <div className="page">
             <div className="profile-header">
-                <img
-                    src={user.avatar_url || 'https://i.pravatar.cc/150'}
-                    alt={user.username}
-                    className="profile-avatar"
-                />
+                {user.avatar_url ? (
+                    <img src={user.avatar_url} alt={user.username} className="profile-avatar" />
+                ) : (
+                    <div className="profile-avatar avatar-placeholder">{user.username[0].toUpperCase()}</div>
+                )}
                 <h2>{user.username}</h2>
                 <p className="bio">{user.bio || 'No bio yet'}</p>
                 <div className="profile-stats">

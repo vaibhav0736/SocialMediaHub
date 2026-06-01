@@ -24,7 +24,6 @@ export const login = (credentials) =>
 
 
 
-
 // Posts
 export const getPosts = (userId) => {
     const params = userId ? `?userId=${userId}` : '';
@@ -36,8 +35,8 @@ export const getFollowingPosts = (userId) => request(`/posts/following/${userId}
 
 export const getPost = (id) => request(`/posts/${id}`);
 
-export const createPost = (postData) =>
-    request('/posts', { method: 'POST', body: JSON.stringify(postData) });
+export const createPost = (formData) =>
+    request('/posts', { method: 'POST', body: formData, headers: {} });
 
 export const likePost = (postId, userId) =>
     request(`/posts/${postId}/like`, { method: 'POST', body: JSON.stringify({ userId }) });
@@ -80,8 +79,25 @@ export const searchUsers = (query) => request(`/users/search?q=${encodeURICompon
 
 
 
+// Notifications
+export const getNotifications = (userId) => request(`/notifications/${userId}`);
+
+export const getUnreadCount = (userId) => request(`/notifications/${userId}/unread-count`);
+
+export const markNotificationRead = (id) =>
+    request(`/notifications/${id}/read`, { method: 'PUT' });
+
+export const markAllRead = (userId) =>
+    request(`/notifications/read-all/${userId}`, { method: 'PUT' });
 
 
+
+// Change Password
+export const changePassword = (userId, oldPassword, newPassword) =>
+    request('/auth/change-password', {
+        method: 'PUT',
+        body: JSON.stringify({ userId, oldPassword, newPassword })
+    });
 
 //profile
 export const editProfile = (userId, data) =>

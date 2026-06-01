@@ -58,7 +58,11 @@ function SearchBar() {
                                 setShowResults(false);
                             }}
                         >
-                            <img src={user.avatar_url || 'https://i.pravatar.cc/30'} alt={user.username} />
+                            {user.avatar_url ? (
+                                <img src={user.avatar_url} alt={user.username} />
+                            ) : (
+                                <div className="avatar-placeholder">{user.username[0].toUpperCase()}</div>
+                            )}
                             <span>{user.username}</span>
                         </Link>
                     ))}

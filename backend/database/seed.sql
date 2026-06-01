@@ -5,7 +5,7 @@
 -- Insert sample users (password is 'password123' hashed with bcrypt)
 -- Hash explanation: 'password123' → '$2a$10$...' (can't be reversed)
 INSERT INTO users (username, email, password, bio, avatar_url) VALUES
-('alice', 'alice@example.com', '$2b$10$0MbOgDv71SEL9EyEY7A8Eu06k5hhejvZTaIL2oeSLuGW/V09jsur2', 'Tech enthusiast & coffee lover', 'https://i.pravatar.cc/150?u=alice'),
+('alice', 'vaibhav123@gmail.com', '$2b$10$0MbOgDv71SEL9EyEY7A8Eu06k5hhejvZTaIL2oeSLuGW/V09jsur2', 'Tech enthusiast & coffee lover', 'https://i.pravatar.cc/150?u=alice'),
 ('bob', 'bob@example.com', '$2b$10$0MbOgDv71SEL9EyEY7A8Eu06k5hhejvZTaIL2oeSLuGW/V09jsur2', 'Software engineer at heart', 'https://i.pravatar.cc/150?u=bob'),
 ('charlie', 'charlie@example.com', '$2b$10$0MbOgDv71SEL9EyEY7A8Eu06k5hhejvZTaIL2oeSLuGW/V09jsur2', 'Design is my passion', 'https://i.pravatar.cc/150?u=charlie'),
 ('diana', 'diana@example.com', '$2b$10$0MbOgDv71SEL9EyEY7A8Eu06k5hhejvZTaIL2oeSLuGW/V09jsur2', 'Lifelong learner', 'https://i.pravatar.cc/150?u=diana');

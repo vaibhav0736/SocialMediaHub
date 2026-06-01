@@ -9,6 +9,7 @@ import CreatePost from './pages/CreatePost';
 import Profile from './pages/Profile';
 import './App.css';
 import { ThemeProvider } from './context/ThemeContext';
+import ChangePassword from './pages/ChangePassword';
 
 function App() {
     return (
@@ -28,6 +29,11 @@ function App() {
                                 </ProtectedRoute>
                             } />
                             <Route path="/users/:id" element={<Profile />} />
+                            <Route path="/change-password" element={
+                                <ProtectedRoute>
+                                    <ChangePassword />
+                                </ProtectedRoute>
+                            } />
                         </Routes>
                     </main>
                 </div>

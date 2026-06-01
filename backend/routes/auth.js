@@ -107,4 +107,42 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// CHANGE PASSWORD
+router.put('/change-password', async (req, res) => {
+    try {
+        const { userId, oldPassword, newPassword } = req.body;
+
+        if (!userId || !oldPassword || !newPassword) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ error: 'New password must be at least 6 characters' });
+        }
+
+        if (oldPassword === newPassword) {
+            return res.status(400).json({ error: 'New password must be different' });
+        }
+
+        const user = getOne('SELECT id, password FROM users WHERE id = ?', [userId]);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const validPassword = await bcrypt.compare(oldPassword, user.password);
+        if (!validPassword) {
+            return res.status(401).json({ error: 'Current password is incorrect' });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        run('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, userId]);
+
+        res.json({ message: 'Password updated successfully' });
+
+    } catch (error) {
+        console.error('Change password error:', error);
+        res.status(500).json({ error: 'Failed to change password' });
+    }
+});
+
 module.exports = router;
