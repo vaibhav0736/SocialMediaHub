@@ -16,8 +16,8 @@ function Feed() {
 
         setLoading(true);
         const fetchPosts =  tab ==="following" && user ?
-                 getFollowingPosts(user.id)
-                 :getPosts(user ? user.id : null);
+                 getFollowingPosts()
+                 :getPosts();
 
 
        fetchPosts

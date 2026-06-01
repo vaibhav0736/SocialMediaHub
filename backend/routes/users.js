@@ -7,10 +7,10 @@ const router = express.Router();
 // Otherwise Express matches /:id first and never reaches these
 
 // CHECK if following
-router.get('/is-following/:profileId/:followerId', (req, res) => {
+router.get('/is-following/:profileId', (req, res) => {
     try {
         const profileId = parseInt(req.params.profileId);
-        const followerId = parseInt(req.params.followerId);
+        const followerId = req.user.userId;
 
         const follow = getOne(
             'SELECT id FROM follows WHERE follower_id = ? AND following_id = ?',
@@ -83,7 +83,7 @@ router.get('/:id', (req, res) => {
 // FOLLOW a user
 router.post('/:id/follow', (req, res) => {
     try {
-        const followerId = req.body.userId;
+        const followerId = req.user.userId;
         const followingId = parseInt(req.params.id);
 
         if (followerId === followingId) {
@@ -128,7 +128,7 @@ router.post('/:id/follow', (req, res) => {
 // UNFOLLOW a user
 router.delete('/:id/follow', (req, res) => {
     try {
-        const followerId = req.body.userId;
+        const followerId = req.user.userId;
         const followingId = parseInt(req.params.id);
 
         const result = run(
@@ -153,7 +153,8 @@ router.delete('/:id/follow', (req, res) => {
 router.put('/:id', (req, res) => {
     try {
         const profileId = parseInt(req.params.id);
-        const { userId, bio, avatar_url } = req.body;
+        const userId = req.user.userId;
+        const { bio, avatar_url } = req.body;
 
         const user = getOne('SELECT id FROM users WHERE id = ?', [profileId]);
         if (!user) {

@@ -107,10 +107,13 @@ router.post('/login', async (req, res) => {
     }
 });
 
+const authenticate = require('../middleware/auth');
+
 // CHANGE PASSWORD
-router.put('/change-password', async (req, res) => {
+router.put('/change-password', authenticate, async (req, res) => {
     try {
-        const { userId, oldPassword, newPassword } = req.body;
+        const userId = req.user.userId;
+        const { oldPassword, newPassword } = req.body;
 
         if (!userId || !oldPassword || !newPassword) {
             return res.status(400).json({ error: 'All fields are required' });

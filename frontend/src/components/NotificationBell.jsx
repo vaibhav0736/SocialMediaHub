@@ -12,8 +12,8 @@ function NotificationBell() {
 
     const fetchNotifications = () => {
         if (!user) return;
-        getNotifications(user.id).then(setNotifications).catch(() => {});
-        getUnreadCount(user.id).then(data => setUnreadCount(data.count)).catch(() => {});
+        getNotifications().then(setNotifications).catch(() => {});
+        getUnreadCount().then(data => setUnreadCount(data.count)).catch(() => {});
     };
 
     useEffect(() => {
@@ -44,7 +44,7 @@ function NotificationBell() {
     };
 
     const handleMarkAllRead = async () => {
-        await markAllRead(user.id);
+        await markAllRead();
         setUnreadCount(0);
         setNotifications(prev => prev.map(n => ({ ...n, is_read: 1 })));
     };

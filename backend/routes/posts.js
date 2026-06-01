@@ -32,7 +32,7 @@ const upload = multer({
 // GET all posts (Feed)
 router.get('/', (req, res) => {
     try {
-        const userId = req.query.userId ? parseInt(req.query.userId) : null;
+        const userId = req.user.userId ? parseInt(req.user.userId) : null;
 
         const posts = getAll(`
             SELECT
@@ -61,9 +61,9 @@ router.get('/', (req, res) => {
 });
 
 // GET posts by a user you follow
-router.get('/following/:userId', (req, res) => {
+router.get('/following', (req, res) => {
     try {
-        const userId = parseInt(req.params.userId);
+        const userId = req.user.userId;
 
         const posts = getAll(`
             SELECT
@@ -129,9 +129,8 @@ router.get('/:id', (req, res) => {
 // CREATE a post (with optional image upload)
 router.post('/', upload.single('image'), (req, res) => {
     try {
-        // req.body has text fields (userId, content)
-        // req.file has the uploaded file (or undefined if no file)
-        const { userId, content } = req.body;
+        const userId = req.user.userId;
+        const { content } = req.body;
 
         if (!content && !req.file) {
             return res.status(400).json({ error: 'Post must have content or an image' });
@@ -166,7 +165,7 @@ router.post('/', upload.single('image'), (req, res) => {
 router.post('/:id/like', (req, res) => {
     try {
         const postId = parseInt(req.params.id);
-        const userId = req.body.userId;
+        const userId = req.user.userId;
 
         const post = getOne('SELECT id FROM posts WHERE id = ?', [postId]);
         if (!post) {
@@ -200,7 +199,7 @@ router.post('/:id/like', (req, res) => {
             const actor=getOne('SELECT username FROM users WHERE ID=?',[userId]);
 
             run(
-                'INSERT INTO notifications (user_id,actor_id,type,post_id,message) VALUES (?,?,?,?)',
+                'INSERT INTO notifications (user_id,actor_id,type,post_id,message) VALUES (?,?,?,?,?)',
                 [postOwner.user_id, userId, 'like', postId, `${actor.username} liked your post`]
             );
         }
@@ -220,7 +219,7 @@ router.post('/:id/like', (req, res) => {
 router.delete('/:id/like', (req, res) => {
     try {
         const postId = parseInt(req.params.id);
-        const userId = req.body.userId;
+        const userId = req.user.userId;
 
         const result = run(
             'DELETE FROM likes WHERE user_id = ? AND post_id = ?',
@@ -245,7 +244,7 @@ router.delete('/:id/like', (req, res) => {
 router.delete('/:id', (req, res) => {
     try {
         const postId = parseInt(req.params.id);
-        const userId = req.body.userId;
+        const userId = req.user.userId;
 
         const post = getOne('SELECT * FROM posts WHERE id = ?', [postId]);
         if (!post) {
@@ -270,7 +269,8 @@ router.delete('/:id', (req, res) => {
 router.post('/:id/comment', (req, res) => {
     try {
         const postId = parseInt(req.params.id);
-        const { userId, content } = req.body;
+        const userId = req.user.userId;
+        const { content } = req.body;
 
         if (!content) {
             return res.status(400).json({ error: 'Comment cannot be empty' });
@@ -300,7 +300,7 @@ router.post('/:id/comment', (req, res) => {
         {
             const actor=getOne('SELECT username FROM users WHERE id=?',[userId]);
             run(
-                'INSERT INTO notifications (user_id,actor_id,type,post_id,message) VALUES (?,?,?,?)',
+                'INSERT INTO notifications (user_id,actor_id,type,post_id,message) VALUES (?,?,?,?,?)',
                 [postOwner.user_id, userId, 'comment', postId, `${actor.username} commented on your post`]
             );
         }
@@ -316,7 +316,7 @@ router.post('/:id/comment', (req, res) => {
 router.get('/user/:userId', (req, res) => {
     try {
         const profileUserId = parseInt(req.params.userId);
-        const currentUserId = req.query.currentUserId ? parseInt(req.query.currentUserId) : null;
+        const currentUserId = req.user.userId ? parseInt(req.user.userId) : null;
 
         const posts = getAll(`
             SELECT
@@ -344,7 +344,8 @@ router.get('/user/:userId', (req, res) => {
 router.put('/:id', (req, res) => {
     try {
         const postId = parseInt(req.params.id);
-        const { userId, content } = req.body;
+        const userId = req.user.userId;
+        const { content } = req.body;
 
         const post = getOne('SELECT * FROM posts WHERE id = ?', [postId]);
         if (!post) {

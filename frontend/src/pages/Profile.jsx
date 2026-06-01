@@ -26,7 +26,7 @@ function Profile() {
         setEditing(false);  // Reset edit mode when navigating to a different profile
         Promise.all([
             getUser(id),
-            getUserPosts(id, currentUser ? currentUser.id : null)
+            getUserPosts(id)
         ])
         .then(([userData, postsData]) => {
             setUser(userData);
@@ -39,7 +39,7 @@ function Profile() {
     // Check if current user is already following this profile
     useEffect(() => {
         if (currentUser && id) {
-            checkFollowStatus(id, currentUser.id)
+            checkFollowStatus(id)
                 .then(data => setIsFollowing(data.following))
                 .catch(() => {});
         }
@@ -50,12 +50,12 @@ function Profile() {
         setFollowLoading(true);
         try {
             if (isFollowing) {
-                await unfollowUser(parseInt(id), currentUser.id);
+                await unfollowUser(parseInt(id));
                 setIsFollowing(false);
                 // Update follower count in real-time
                 setUser(prev => ({ ...prev, follower_count: prev.follower_count - 1 }));
             } else {
-                await followUser(parseInt(id), currentUser.id);
+                await followUser(parseInt(id));
                 setIsFollowing(true);
                 // Update follower count in real-time
                 setUser(prev => ({ ...prev, follower_count: prev.follower_count + 1 }));

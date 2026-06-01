@@ -2,8 +2,12 @@ const BASE_URL = 'http://localhost:3000/api';
 
 // Helper - handles JSON parsing and errors
 async function request(url, options = {}) {
+    const token = localStorage.getItem('token');
     const response = await fetch(`${BASE_URL}${url}`, {
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` }),
+        },
         ...options,
     });
     const data = await response.json();
@@ -25,38 +29,37 @@ export const login = (credentials) =>
 
 
 // Posts
-export const getPosts = (userId) => {
-    const params = userId ? `?userId=${userId}` : '';
-    return request(`/posts${params}`);
-};
+export const getPosts = () => request('/posts');
 
-export const getFollowingPosts = (userId) => request(`/posts/following/${userId}`);
+export const getFollowingPosts = () => request('/posts/following');
 
 
 export const getPost = (id) => request(`/posts/${id}`);
 
-export const createPost = (formData) =>
-    request('/posts', { method: 'POST', body: formData, headers: {} });
-
-export const likePost = (postId, userId) =>
-    request(`/posts/${postId}/like`, { method: 'POST', body: JSON.stringify({ userId }) });
-
-export const unlikePost = (postId, userId) =>
-    request(`/posts/${postId}/like`, { method: 'DELETE', body: JSON.stringify({ userId }) });
-
-export const commentOnPost = (postId, userId, content) =>
-    request(`/posts/${postId}/comment`, { method: 'POST', body: JSON.stringify({ userId, content }) });
-
-export const getUserPosts = (userId, currentUserId) => {
-    const params = currentUserId ? `?currentUserId=${currentUserId}` : '';
-    return request(`/posts/user/${userId}${params}`);
+export const createPost = (formData) =>{
+    const token=localStorage.getItem('token'); 
+    return request('/posts', { 
+        method: 'POST',
+        body: formData,
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {} });
 };
 
-export const editPost = (postId, userId, content) =>
-    request(`/posts/${postId}`, { method: 'PUT', body: JSON.stringify({ userId, content }) });
+export const likePost = (postId) =>
+    request(`/posts/${postId}/like`, { method: 'POST' });
 
-export const deletePost = (postId, userId) =>
-    request(`/posts/${postId}`, { method: 'DELETE', body: JSON.stringify({ userId }) });
+export const unlikePost = (postId) =>
+    request(`/posts/${postId}/like`, { method: 'DELETE' });
+
+export const commentOnPost = (postId, content) =>
+    request(`/posts/${postId}/comment`, { method: 'POST', body: JSON.stringify({ content }) });
+
+export const getUserPosts = (userId) => request(`/posts/user/${userId}`);
+
+export const editPost = (postId, content) =>
+    request(`/posts/${postId}`, { method: 'PUT', body: JSON.stringify({ content }) });
+
+export const deletePost = (postId) =>
+    request(`/posts/${postId}`, { method: 'DELETE' });
 
 
 
@@ -64,14 +67,14 @@ export const deletePost = (postId, userId) =>
 // Users
 export const getUser = (id) => request(`/users/${id}`);
 
-export const followUser = (targetId, myId) =>
-    request(`/users/${targetId}/follow`, { method: 'POST', body: JSON.stringify({ userId: myId }) });
+export const followUser = (targetId) =>
+    request(`/users/${targetId}/follow`, { method: 'POST' });
 
-export const unfollowUser = (targetId, myId) =>
-    request(`/users/${targetId}/follow`, { method: 'DELETE', body: JSON.stringify({ userId: myId }) });
+export const unfollowUser = (targetId) =>
+    request(`/users/${targetId}/follow`, { method: 'DELETE' });
 
-export const checkFollowStatus = (profileId, myId) =>
-    request(`/users/is-following/${profileId}/${myId}`);
+export const checkFollowStatus = (profileId) =>
+    request(`/users/is-following/${profileId}`);
 
 
 export const searchUsers = (query) => request(`/users/search?q=${encodeURIComponent(query)}`);
@@ -80,25 +83,25 @@ export const searchUsers = (query) => request(`/users/search?q=${encodeURICompon
 
 
 // Notifications
-export const getNotifications = (userId) => request(`/notifications/${userId}`);
+export const getNotifications = () => request('/notifications');
 
-export const getUnreadCount = (userId) => request(`/notifications/${userId}/unread-count`);
+export const getUnreadCount = () => request('/notifications/unread-count');
 
 export const markNotificationRead = (id) =>
     request(`/notifications/${id}/read`, { method: 'PUT' });
 
-export const markAllRead = (userId) =>
-    request(`/notifications/read-all/${userId}`, { method: 'PUT' });
+export const markAllRead = () =>
+    request('/notifications/read-all', { method: 'PUT' });
 
 
 
 // Change Password
-export const changePassword = (userId, oldPassword, newPassword) =>
+export const changePassword = (oldPassword, newPassword) =>
     request('/auth/change-password', {
         method: 'PUT',
-        body: JSON.stringify({ userId, oldPassword, newPassword })
+        body: JSON.stringify({ oldPassword, newPassword })
     });
 
 //profile
 export const editProfile = (userId, data) =>
-    request(`/users/${userId}`, { method: 'PUT', body: JSON.stringify({ userId, ...data }) });
+    request(`/users/${userId}`, { method: 'PUT', body: JSON.stringify(data) });

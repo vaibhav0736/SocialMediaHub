@@ -8,12 +8,9 @@ const router=express.Router();
 
 //GET notifications for a user
 
-router.get('/:userId',async(req,res)=>{
-
-
-
-    try{
-        const userId=parseInt(req.params.userId);
+router.get('/', async (req, res) => {
+    try {
+        const userId = req.user.userId;
 
 
         const notifications=getAll(`
@@ -44,9 +41,9 @@ router.get('/:userId',async(req,res)=>{
 
 
 //GET UNread count 
-router.get('/:userId/unread-count',async(req,res)=>{
-    try{
-        const userId=parseInt(req.params.userId);
+router.get('/unread-count', async (req, res) => {
+    try {
+        const userId = req.user.userId;
 
         const result=getOne(`
             SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = 0
@@ -74,9 +71,9 @@ router.put('/:id/read',async(req,res)=>{
 
 
 //MARK all as read
-router.put('/read-all/:userId',async(req,res)=>{
-    try{
-        const userId=parseInt(req.params.userId);
+router.put('/read-all', async (req, res) => {
+    try {
+        const userId = req.user.userId;
         run(`UPDATE notifications SET is_read=1 WHERE user_id=?`,[userId]);
         res.json({message:'All Notifications marked as read'});
     } catch (error) {

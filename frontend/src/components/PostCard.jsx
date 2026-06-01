@@ -22,11 +22,11 @@ function PostCard({ post, currentUserId, onPostDeleted, onPostEdited }) {
 
     const handleLike = async () => {
         if (liked) {
-            await unlikePost(post.id, currentUserId);
+            await unlikePost(post.id);
             setLikeCount(likeCount - 1);
             setLiked(false);
         } else {
-            await likePost(post.id, currentUserId);
+            await likePost(post.id);
             setLikeCount(likeCount + 1);
             setLiked(true);
         }
@@ -46,7 +46,7 @@ function PostCard({ post, currentUserId, onPostDeleted, onPostEdited }) {
         if (!commentText.trim()) return;
         setSubmitting(true);
         try {
-            const newComment = await commentOnPost(post.id, currentUserId, commentText);
+            const newComment = await commentOnPost(post.id, commentText);
             setComments([...comments, newComment]);
             setCommentText('');
         } catch (err) {
@@ -60,7 +60,7 @@ function PostCard({ post, currentUserId, onPostDeleted, onPostEdited }) {
         if (!editContent.trim()) return;
         setEditLoading(true);
         try {
-            const updated = await editPost(post.id, currentUserId, editContent);
+            const updated = await editPost(post.id, editContent);
             if (onPostEdited) onPostEdited(updated);
             setEditing(false);
         } catch (err) {
@@ -73,7 +73,7 @@ function PostCard({ post, currentUserId, onPostDeleted, onPostEdited }) {
         if (!window.confirm('Delete this post?')) return;
         setDeleting(true);
         try {
-            await deletePost(post.id, currentUserId);
+            await deletePost(post.id);
             if (onPostDeleted) onPostDeleted(post.id);
         } catch (err) {
             console.error(err);

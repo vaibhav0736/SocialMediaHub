@@ -1,7 +1,7 @@
 const express=require('express');
 const cors=require('cors');
 const {initializeDatabase}=require('./database/db');
-
+const authenticate=require('./middleware/auth');
 
 
 initializeDatabase();
@@ -26,10 +26,14 @@ app.use("/uploads",express.static(path.join(__dirname, 'uploads')));
 
 
 //Mount routes
+// Public routes (no auth needed)
 app.use('/api/auth',require('./routes/auth'));
-app.use('/api/users',require('./routes/users'));
-app.use('/api/posts',require('./routes/posts'));
-app.use('/api/notifications',require('./routes/notifications'));
+
+
+// Protected routes (must be logged in)
+app.use('/api/users', authenticate, require('./routes/users'));
+app.use('/api/posts', authenticate, require('./routes/posts'));
+app.use('/api/notifications', authenticate, require('./routes/notifications'));
 
 //Health checck
 app.get('/api/health',(req,res)=>{

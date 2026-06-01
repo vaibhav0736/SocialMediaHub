@@ -36,7 +36,7 @@ function ChangePassword() {
 
         setLoading(true);
         try {
-            await changePassword(user.id, oldPassword, newPassword);
+            await changePassword(oldPassword, newPassword);
             setSuccess('Password changed successfully!');
             setOldPassword('');
             setNewPassword('');

@@ -42,7 +42,6 @@ function CreatePost() {
         try {
             // Build FormData — can't use JSON because of the file
             const formData = new FormData();
-            formData.append('userId', user.id);
             formData.append('content', content);
             if (image) {
                 formData.append('image', image);   // 'image' matches upload.single('image')

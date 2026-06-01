@@ -556,7 +556,7 @@ body[data-theme="dark"] .avatar-placeholder { background: #3b82f6; }
     flex-shrink: 0;
 }
 .notif-text { flex: 1; }
-.notif-text p { font-size: 0.9rem; margin-bottom: 2px; }
+.notif-text p { color:black;font-size: 0.9rem; margin-bottom: 2px; }
 .notif-time { font-size: 0.75rem; color: #888; }
 .notif-dot {
     width: 8px;
