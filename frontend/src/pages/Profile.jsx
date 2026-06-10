@@ -13,7 +13,9 @@ function Profile() {
     const [error, setError] = useState(null);
     const [isFollowing, setIsFollowing] = useState(false);
     const [followLoading, setFollowLoading] = useState(false);
-
+    const [postPage, setPostPage] = useState(1);
+    const [hasMorePosts, setHasMorePosts] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
 
     //Editing Profile
     const[editing,setEditing]=useState(false);
@@ -23,14 +25,16 @@ function Profile() {
 
 
     useEffect(() => {
-        setEditing(false);  // Reset edit mode when navigating to a different profile
+        setEditing(false);
+        setPostPage(1);
         Promise.all([
             getUser(id),
-            getUserPosts(id)
+            getUserPosts(id, 1)
         ])
         .then(([userData, postsData]) => {
             setUser(userData);
-            setPosts(postsData);
+            setPosts(postsData.posts);
+            setHasMorePosts(postsData.hasMore);
         })
         .catch(err => setError(err.message))
         .finally(() => setLoading(false));
@@ -89,6 +93,20 @@ function Profile() {
         }
         setEditLoading(false);
     }
+
+    const handleLoadMorePosts = async () => {
+        const nextPage = postPage + 1;
+        setLoadingMore(true);
+        try {
+            const data = await getUserPosts(id, nextPage);
+            setPosts(prev => [...prev, ...data.posts]);
+            setHasMorePosts(data.hasMore);
+            setPostPage(nextPage);
+        } catch (err) {
+            console.error(err);
+        }
+        setLoadingMore(false);
+    };
 
     if (loading) return <div className="loading">Loading profile...</div>;
     if (error) return <div className="error">Error: {error}</div>;
@@ -177,11 +195,20 @@ function Profile() {
                     <PostCard
                         key={post.id}
                         post={post}
-                        currentUserId={currentUser ? currentUser.id : 0}
                         onPostDeleted={(postId) => setPosts(posts.filter(p => p.id !== postId))}
                         onPostEdited={(updated) => setPosts(posts.map(p => p.id === updated.id ? { ...updated, liked_by_me: p.liked_by_me, like_count: p.like_count, comment_count: p.comment_count } : p))}
                     />
                 ))
+            )}
+
+            {hasMorePosts && (
+                <button className="load-more-btn" onClick={handleLoadMorePosts} disabled={loadingMore}>
+                    {loadingMore ? 'Loading...' : 'Load More'}
+                </button>
+            )}
+
+            {!hasMorePosts && posts.length > 0 && (
+                <p className="no-posts">No more posts.</p>
             )}
         </div>
     );

@@ -10,6 +10,7 @@ import Profile from './pages/Profile';
 import './App.css';
 import { ThemeProvider } from './context/ThemeContext';
 import ChangePassword from './pages/ChangePassword';
+import PostDetail from './pages/PostDetail';
 
 function App() {
     return (
@@ -20,7 +21,11 @@ function App() {
                     <Navbar />
                     <main className="main-content">
                         <Routes>
-                            <Route path="/" element={<Feed />} />
+                            <Route path="/" element={
+                                <ProtectedRoute>
+                                    <Feed />
+                                </ProtectedRoute>
+                            } />
                             <Route path="/login" element={<Login />} />
                             <Route path="/register" element={<Register />} />
                             <Route path="/create" element={
@@ -28,7 +33,16 @@ function App() {
                                     <CreatePost />
                                 </ProtectedRoute>
                             } />
-                            <Route path="/users/:id" element={<Profile />} />
+                            <Route path="/users/:id" element={
+                                <ProtectedRoute>
+                                    <Profile />
+                                </ProtectedRoute>
+                            } />
+                            <Route path="/posts/:id" element={
+                                <ProtectedRoute>
+                                    <PostDetail />
+                                </ProtectedRoute>
+                            } />
                             <Route path="/change-password" element={
                                 <ProtectedRoute>
                                     <ChangePassword />

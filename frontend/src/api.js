@@ -29,9 +29,11 @@ export const login = (credentials) =>
 
 
 // Posts
-export const getPosts = () => request('/posts');
+export const getPosts = (page = 1, limit = 10) =>
+    request(`/posts?page=${page}&limit=${limit}`);
 
-export const getFollowingPosts = () => request('/posts/following');
+export const getFollowingPosts = (page = 1, limit = 10) =>
+    request(`/posts/following?page=${page}&limit=${limit}`);
 
 
 export const getPost = (id) => request(`/posts/${id}`);
@@ -53,7 +55,9 @@ export const unlikePost = (postId) =>
 export const commentOnPost = (postId, content) =>
     request(`/posts/${postId}/comment`, { method: 'POST', body: JSON.stringify({ content }) });
 
-export const getUserPosts = (userId) => request(`/posts/user/${userId}`);
+export const getUserPosts = (userId, page = 1, limit = 10) =>
+    request(`/posts/user/${userId}?page=${page}&limit=${limit}`);
+
 
 export const editPost = (postId, content) =>
     request(`/posts/${postId}`, { method: 'PUT', body: JSON.stringify({ content }) });

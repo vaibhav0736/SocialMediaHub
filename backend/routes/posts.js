@@ -29,10 +29,14 @@ const upload = multer({
     }
 });
 
-// GET all posts (Feed)
+// GET posts by users you follow — with pagination
+
 router.get('/', (req, res) => {
     try {
         const userId = req.user.userId ? parseInt(req.user.userId) : null;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page - 1) * limit;
 
         const posts = getAll(`
             SELECT
@@ -49,10 +53,16 @@ router.get('/', (req, res) => {
             FROM posts
             INNER JOIN users ON posts.user_id = users.id
             ORDER BY posts.created_at DESC
-        `, [userId || 0]);
+            LIMIT ? OFFSET ?
+        `, [userId || 0, limit, offset]);
 
         const result = posts.map(p => ({ ...p, liked_by_me: !!p.liked_by_me }));
-        res.json(result);
+
+        // Check if there are more posts to load
+        const total = getOne('SELECT COUNT(*) as count FROM posts');
+        const hasMore = offset + limit < total.count;
+
+        res.json({ posts: result, hasMore });
 
     } catch (error) {
         console.error('Get posts error:', error);
@@ -60,10 +70,13 @@ router.get('/', (req, res) => {
     }
 });
 
-// GET posts by a user you follow
+// GET posts by users you follow — with pagination
 router.get('/following', (req, res) => {
     try {
         const userId = req.user.userId;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page - 1) * limit;
 
         const posts = getAll(`
             SELECT
@@ -78,16 +91,62 @@ router.get('/following', (req, res) => {
                 SELECT following_id FROM follows WHERE follower_id = ?
             )
             ORDER BY posts.created_at DESC
-        `, [userId, userId]);
+            LIMIT ? OFFSET ?
+        `, [userId, userId, limit, offset]);
 
         const result = posts.map(p => ({ ...p, liked_by_me: !!p.liked_by_me }));
-        res.json(result);
+
+        const total = getOne(
+            'SELECT COUNT(*) as count FROM posts WHERE user_id IN (SELECT following_id FROM follows WHERE follower_id = ?)',
+            [userId]
+        );
+        const hasMore = offset + limit < total.count;
+
+        res.json({ posts: result, hasMore });
 
     } catch (error) {
         console.error('Get Following posts error:', error);
         res.status(500).json({ error: 'Failed to get posts' });
     }
 });
+
+// GET posts by a specific user — with pagination
+router.get('/user/:userId', (req, res) => {
+    try {
+        const profileUserId = parseInt(req.params.userId);
+        const currentUserId = req.user.userId ? parseInt(req.user.userId) : null;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page - 1) * limit;
+
+        const posts = getAll(`
+            SELECT
+                posts.id, posts.content, posts.image_url, posts.created_at,
+                users.id as user_id, users.username, users.avatar_url,
+                (SELECT COUNT(*) FROM likes WHERE post_id = posts.id) as like_count,
+                (SELECT COUNT(*) FROM comments WHERE post_id = posts.id) as comment_count,
+                COALESCE((SELECT 1 FROM likes WHERE post_id = posts.id AND user_id = ?), 0) as liked_by_me
+            FROM posts
+            INNER JOIN users ON posts.user_id = users.id
+            WHERE posts.user_id = ?
+            ORDER BY posts.created_at DESC
+            LIMIT ? OFFSET ?
+        `, [currentUserId || 0, profileUserId, limit, offset]);
+
+        const result = posts.map(p => ({ ...p, liked_by_me: !!p.liked_by_me }));
+
+        const total = getOne('SELECT COUNT(*) as count FROM posts WHERE user_id = ?', [profileUserId]);
+        const hasMore = offset + limit < total.count;
+
+        res.json({ posts: result, hasMore });
+
+    } catch (error) {
+        console.error('Get user posts error:', error);
+        res.status(500).json({ error: 'Failed to get posts' });
+    }
+});
+
+
 
 // GET single post with comments
 router.get('/:id', (req, res) => {
@@ -98,11 +157,12 @@ router.get('/:id', (req, res) => {
             SELECT
                 posts.id, posts.content, posts.image_url, posts.created_at,
                 users.id as user_id, users.username, users.avatar_url,
-                (SELECT COUNT(*) FROM likes WHERE post_id = posts.id) as like_count
+                (SELECT COUNT(*) FROM likes WHERE post_id = posts.id) as like_count,
+                COALESCE((SELECT 1 FROM likes WHERE post_id = posts.id AND user_id = ?), 0) as liked_by_me
             FROM posts
             INNER JOIN users ON posts.user_id = users.id
             WHERE posts.id = ?
-        `, [postId]);
+        `, [req.user.userId, postId]);
 
         if (!post) {
             return res.status(404).json({ error: 'Post not found' });
@@ -309,34 +369,6 @@ router.post('/:id/comment', (req, res) => {
     } catch (error) {
         console.error('Comment error:', error);
         res.status(500).json({ error: 'Failed to add comment' });
-    }
-});
-
-// GET posts by a specific user
-router.get('/user/:userId', (req, res) => {
-    try {
-        const profileUserId = parseInt(req.params.userId);
-        const currentUserId = req.user.userId ? parseInt(req.user.userId) : null;
-
-        const posts = getAll(`
-            SELECT
-                posts.id, posts.content, posts.image_url, posts.created_at,
-                users.id as user_id, users.username, users.avatar_url,
-                (SELECT COUNT(*) FROM likes WHERE post_id = posts.id) as like_count,
-                (SELECT COUNT(*) FROM comments WHERE post_id = posts.id) as comment_count,
-                COALESCE((SELECT 1 FROM likes WHERE post_id = posts.id AND user_id = ?), 0) as liked_by_me
-            FROM posts
-            INNER JOIN users ON posts.user_id = users.id
-            WHERE posts.user_id = ?
-            ORDER BY posts.created_at DESC
-        `, [currentUserId || 0, profileUserId]);
-
-        const result = posts.map(p => ({ ...p, liked_by_me: !!p.liked_by_me }));
-        res.json(result);
-
-    } catch (error) {
-        console.error('Get user posts error:', error);
-        res.status(500).json({ error: 'Failed to get posts' });
     }
 });
 

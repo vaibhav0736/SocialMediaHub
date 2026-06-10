@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { likePost, unlikePost, commentOnPost, editPost, deletePost } from '../api';
+import { likePost, unlikePost, commentOnPost, editPost, deletePost, getPost } from '../api';
 
 function PostCard({ post, currentUserId, onPostDeleted, onPostEdited }) {
     const [likeCount, setLikeCount] = useState(post.like_count);
@@ -21,22 +21,29 @@ function PostCard({ post, currentUserId, onPostDeleted, onPostEdited }) {
     const isOwner = currentUserId === post.user_id;
 
     const handleLike = async () => {
-        if (liked) {
-            await unlikePost(post.id);
-            setLikeCount(likeCount - 1);
-            setLiked(false);
-        } else {
-            await likePost(post.id);
-            setLikeCount(likeCount + 1);
-            setLiked(true);
+        try {
+            if (liked) {
+                await unlikePost(post.id);
+                setLikeCount(likeCount - 1);
+                setLiked(false);
+            } else {
+                await likePost(post.id);
+                setLikeCount(likeCount + 1);
+                setLiked(true);
+            }
+        } catch (err) {
+            console.error('Like error:', err);
         }
     };
 
     const toggleComments = async () => {
         if (!showComments && comments.length === 0) {
-            const res = await fetch(`http://localhost:3000/api/posts/${post.id}`);
-            const data = await res.json();
-            setComments(data.comments || []);
+            try {
+                const data = await getPost(post.id);
+                setComments(data.comments || []);
+            } catch (err) {
+                console.error(err);
+            }
         }
         setShowComments(!showComments);
     };

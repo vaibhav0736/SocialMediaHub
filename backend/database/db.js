@@ -29,21 +29,16 @@ function initializeDatabase()
 
     console.log("db  schema created succesfully");
 
-    //seed with sample data
-    // const seedPath=path.join(__dirname,'seed.sql');
-    // const seed=fs.readFileSync(seedPath,'utf8');
+    const seedPath = path.join(__dirname, 'seed.sql');
+    const seed = fs.readFileSync(seedPath, 'utf8');
 
-    //for seeding data and if seeded do not seed
-
-    const userCount=db.prepare('SELECT COUNT(*) as count FROM users').get();
-    // if(userCount.count === 0)
-    // {
-    //     db.exec(seed);
-    //     console.log('Sample data seeded successfully');
-    // }
-    // else{
-    //     console.log('ℹ Database already has data, skipping seed');
-    // }
+    const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get();
+    if (userCount.count === 0) {
+        db.exec(seed);
+        console.log('Sample data seeded successfully');
+    } else {
+        console.log('Database already has data, skipping seed');
+    }
     
 }
 

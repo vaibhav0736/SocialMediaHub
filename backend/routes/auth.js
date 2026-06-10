@@ -58,7 +58,7 @@ router.post('/register',async(req,res)=>{
    .json({
     message:"User Created",
     token,
-    user:{id:result.lastInsertRowid,username,email}
+    user:{id:result.lastInsertRowid,username,email,avatar_url:''}
    });
     }catch(error)
     {

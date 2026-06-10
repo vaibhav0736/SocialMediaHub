@@ -60,8 +60,9 @@ router.get('/unread-count', async (req, res) => {
 //MARK aone as read
 router.put('/:id/read',async(req,res)=>{
     try{
-        const id=parseInt(req.params.id);
-        run(`UPDATE notifications SET is_read=1 WHERE id=?`,[id]);
+        const id = parseInt(req.params.id);
+        const userId = req.user.userId;
+        run(`UPDATE notifications SET is_read=1 WHERE id=? AND user_id=?`, [id, userId]);
         res.json({message:'Notification marked as read'});
     } catch (error) {
         console.error('Mark as read error:', error);
